@@ -1,0 +1,283 @@
+<!-- members/templates/members/edit_member.html -->
+{% extends 'members/base2.html' %}
+{% load widget_tweaks %}
+
+{% block title %}Edit Member - {{ member.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="w-full max-w-4xl mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">
+      Edit Member: {{ member.get_full_name }}
+    </h1>
+    <div class="w-20 h-1 bg-gradient-to-r from-orange-400 to-orange-600 mx-auto rounded-full"></div>
+  </div>
+
+  <!-- Form Card -->
+  <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8 border border-gray-100">
+    {% if form.errors %}
+    <div class="mb-4 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <h3 class="text-sm font-medium text-red-800">Please correct the following errors:</h3>
+          <div class="mt-2 text-sm text-red-700">
+            <ul class="list-disc pl-5 space-y-1">
+              {% for field in form %}
+                {% for error in field.errors %}
+                  <li><strong>{{ field.label }}:</strong> {{ error|escape }}</li>
+                {% endfor %}
+              {% endfor %}
+              {% for error in form.non_field_errors %}
+                <li>{{ error|escape }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data" action="{% url 'edit_member' member.id %}" class="space-y-6">
+      {% csrf_token %}
+      <input type="hidden" name="member_id" value="{{ member.id }}">
+      
+      <!-- Personal Information Section -->
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Personal Information</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- First Name -->
+          <div>
+            <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              First Name <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.first_name class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.first_name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.first_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Last Name -->
+          <div>
+            <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Last Name <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.last_name class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.last_name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.last_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Email -->
+          <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.email class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.email.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.email.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Phone Number -->
+          <div>
+            <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.phone_number class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.phone_number.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.phone_number.errors.0 }}</p>
+            {% endif %}
+          </div>
+
+          <!-- Address -->
+          <div class="md:col-span-2">
+            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Address <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.address class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.address.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.address.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Additional Information Section -->
+      <div class="space-y-4 pt-4">
+        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Additional Information</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Guardian/Emergency Name -->
+          <div>
+            <label for="{{ form.guardian_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Guardian/Emergency Contact Name <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.guardian_name class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.guardian_name.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.guardian_name.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Guardian/Emergency Phone Number -->
+          <div>
+            <label for="{{ form.guardian_phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Emergency Contact Number <span class="text-red-500">*</span>
+              <span class="text-xs font-normal text-gray-500">(In case of emergency)</span>
+            </label>
+            {% render_field form.guardian_phone_number class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.guardian_phone_number.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.guardian_phone_number.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Date of Birth -->
+          <div>
+            <label for="{{ form.date_of_birth.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Date of Birth <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.date_of_birth class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.date_of_birth.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.date_of_birth.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Gender -->
+          <div>
+            <label for="{{ form.gender.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Gender <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.gender class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.gender.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.gender.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Profession -->
+          <div>
+            <label for="{{ form.profession.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Profession <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.profession class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.profession.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.profession.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- NHIS Number -->
+          <div>
+            <label for="{{ form.nhis_number.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              NHIS Number
+            </label>
+            {% render_field form.nhis_number class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.nhis_number.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.nhis_number.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Church -->
+          <div>
+            <label for="{{ form.church.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Church <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.church class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.church.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.church.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- District -->
+          <div>
+            <label for="{{ form.district.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              District <span class="text-red-500">*</span>
+            </label>
+            {% render_field form.district class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" %}
+            {% if form.district.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.district.errors.0 }}</p>
+            {% endif %}
+          </div>
+          
+          <!-- Allergies -->
+          <div class="md:col-span-2">
+            <label for="{{ form.allergies.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Allergies/Medical Conditions
+            </label>
+            {% render_field form.allergies class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all" rows="3" %}
+            {% if form.allergies.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.allergies.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Photo Upload -->
+      <div class="space-y-4 pt-4">
+        <h2 class="text-lg font-semibold text-gray-700 border-b pb-2">Profile Photo</h2>
+        
+        <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+          <!-- Current Photo -->
+          <div class="w-32 h-32 rounded-full bg-gray-100 border-2 border-gray-200 flex items-center justify-center overflow-hidden">
+            {% if member.picture %}
+              <img src="{{ member.picture.url }}" alt="{{ member.get_full_name }}" class="w-full h-full object-cover">
+            {% else %}
+              <i class="fas fa-user text-gray-400 text-5xl"></i>
+            {% endif %}
+          </div>
+          
+          <!-- Upload New Photo -->
+          <div class="flex-1 w-full">
+            <label for="{{ form.picture.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+              Change Photo (Optional)
+            </label>
+            <div class="mt-1 flex items-center">
+              <label class="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all">
+                Choose File
+                <input type="file" name="{{ form.picture.name }}" id="{{ form.picture.id_for_label }}" class="sr-only" onchange="previewPhoto(this)">
+              </label>
+              <span id="file-name" class="ml-3 text-sm text-gray-500">No file chosen</span>
+            </div>
+            {% if form.picture.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ form.picture.errors.0 }}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      
+      <!-- Form Actions -->
+      <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200">
+        <a href="{% url 'member_list' %}" class="inline-flex justify-center items-center px-6 py-2.5 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-all">
+          <i class="fas fa-times mr-2"></i> Cancel
+        </a>
+        <button type="submit" class="inline-flex justify-center items-center px-6 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 shadow-sm transition-all">
+          <i class="fas fa-save mr-2"></i> Save Changes
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Preview Photo Script -->
+<script>
+function previewPhoto(input) {
+  const fileName = input.files[0]?.name || 'No file chosen';
+  document.getElementById('file-name').textContent = fileName;
+  
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = input.closest('form').querySelector('img');
+      if (preview) {
+        preview.src = e.target.result;
+      }
+    }
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends 'members/base2.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% load member_filters %}
+{% block title %}Member List{% endblock %} 
+{% block content %}
+
+<div class="w-full max-w-6xl mx-auto px-4 my-10">
+  <!-- Header with decorative elements -->
+  <div class="relative mb-6 md:mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+      Members
+    </h1>
+    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"></div>
+    <p class="text-gray-500 mt-2 text-sm md:text-base">Manage and view all registered members</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-gray-100">
+    <!-- Action Buttons and Search Bar -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+      <!-- Admin Actions -->
+      {% if user.is_staff %}
+      <div class="flex flex-wrap gap-2 md:gap-3">
+        <a href="{% url 'export_members_csv' %}" class="flex items-center px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-lg shadow-md hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:shadow-lg text-sm md:text-base">
+          <i class="fas fa-file-csv mr-1 md:mr-2"></i> Export to CSV
+        </a>
+        <a href="{% url 'print_badges' %}" class="flex items-center px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:shadow-lg text-sm md:text-base">
+          <i class="fas fa-id-card mr-1 md:mr-2"></i> Print Badges
+        </a>
+      </div>
+      {% endif %}
+      
+      <!-- Search Form -->
+      <div class="relative w-full md:w-64 lg:w-80">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <i class="fas fa-search"></i>
+        </span>
+        <input 
+          type="text" 
+          id="search" 
+          class="w-full pl-10 pr-4 py-2.5 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors" 
+          placeholder="Search members..." 
+          onkeyup="searchMembers()"
+        >
+      </div>
+    </div>
+    
+    <!-- Table Instructions for Mobile -->
+    <div class="md:hidden mb-4 bg-blue-50 p-3 rounded-lg text-sm text-blue-700">
+      <p><i class="fas fa-info-circle mr-1"></i> Swipe horizontally to view all member details</p>
+    </div>
+    
+    <!-- Search and Pagination Info -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+      <div class="text-sm text-gray-600">
+        Showing <span class="font-medium">{{ page_obj.start_index }}</span> to 
+        <span class="font-medium">{{ page_obj.end_index }}</span> of 
+        <span class="font-medium">{{ paginator.count }}</span> members
+      </div>
+      
+      <!-- Dynamic Items per page selector -->
+      <div class="flex items-center space-x-2">
+        <span class="text-sm text-gray-600">Items per page:</span>
+        <select id="per-page" class="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-orange-500">
+          {% with total=paginator.count %}
+            {% if total > 1000 %}
+              <option value="250" {% if paginator.per_page == 250 %}selected{% endif %}>250</option>
+              <option value="500" {% if paginator.per_page == 500 %}selected{% endif %}>500</option>
+              <option value="1000" {% if paginator.per_page == 1000 or paginator.per_page > 1000 and paginator.per_page < total %}selected{% endif %}>1,000</option>
+              <option value="{{ total }}" {% if paginator.per_page == total %}selected{% endif %}>All ({{ total|intcomma }})</option>
+            {% elif total > 500 %}
+              <option value="100" {% if paginator.per_page == 100 %}selected{% endif %}>100</option>
+              <option value="250" {% if paginator.per_page == 250 %}selected{% endif %}>250</option>
+              <option value="500" {% if paginator.per_page == 500 or paginator.per_page > 500 and paginator.per_page < total %}selected{% endif %}>500</option>
+              <option value="{{ total }}" {% if paginator.per_page == total %}selected{% endif %}>All ({{ total|intcomma }})</option>
+            {% elif total > 100 %}
+              <option value="50" {% if paginator.per_page == 50 %}selected{% endif %}>50</option>
+              <option value="100" {% if paginator.per_page == 100 or paginator.per_page > 100 and paginator.per_page < total %}selected{% endif %}>100</option>
+              <option value="250" {% if paginator.per_page == 250 or paginator.per_page > 250 and paginator.per_page < total %}selected{% endif %}>250</option>
+              <option value="{{ total }}" {% if paginator.per_page == total %}selected{% endif %}>All ({{ total|intcomma }})</option>
+            {% elif total > 50 %}
+              <option value="25" {% if paginator.per_page == 25 %}selected{% endif %}>25</option>
+              <option value="50" {% if paginator.per_page == 50 or paginator.per_page > 50 and paginator.per_page < total %}selected{% endif %}>50</option>
+              <option value="{{ total }}" {% if paginator.per_page == total %}selected{% endif %}>All ({{ total|intcomma }})</option>
+            {% else %}
+              <option value="10" {% if paginator.per_page == 10 or paginator.per_page > 10 and paginator.per_page < total %}selected{% endif %}>10</option>
+              <option value="25" {% if paginator.per_page == 25 or paginator.per_page > 25 and paginator.per_page < total %}selected{% endif %}>25</option>
+              <option value="{{ total }}" {% if paginator.per_page == total %}selected{% endif %}>All ({{ total|intcomma }})</option>
+            {% endif %}
+          {% endwith %}
+        </select>
+      </div>
+    </div>
+    
+    <!-- Responsive Table with Horizontal Scroll on Mobile -->
+    <div class="overflow-x-auto rounded-lg border border-gray-200">
+      <table id="member-table" class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Picture</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profession</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Church</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">District</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Division</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DOB</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NHIS No</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Allergies</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Guardian/Emergency</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vegetarian</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% include 'members/member_list_rows.html' %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination Controls -->
+    {% if is_paginated %}
+    <div class="mt-4 flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6 rounded-b-lg">
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Showing <span class="font-medium">{{ page_obj.start_index }}</span> to 
+            <span class="font-medium">{{ page_obj.end_index }}</span> of 
+            <span class="font-medium">{{ paginator.count }}</span> results
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+            {% if page_obj.has_previous %}
+              <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                 class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left h-5 w-5"></i>
+              </a>
+            {% else %}
+              <span class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                <span class="sr-only">Previous</span>
+                <i class="fas fa-chevron-left h-5 w-5"></i>
+              </span>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                   class="relative inline-flex items-center px-4 py-2 border border-orange-500 bg-orange-50 text-sm font-medium text-orange-600 hover:bg-orange-100">
+                  {{ num }}
+                </a>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                  {{ num }}
+                </a>
+              {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+              <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" 
+                 class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right h-5 w-5"></i>
+              </a>
+            {% else %}
+              <span class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-gray-100 text-sm font-medium text-gray-300 cursor-not-allowed">
+                <span class="sr-only">Next</span>
+                <i class="fas fa-chevron-right h-5 w-5"></i>
+              </span>
+            {% endif %}
+          </nav>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  
+  <!-- Quick Stats Card -->
+  <div class="mt-6 md:mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 shadow-lg text-white">
+      <div class="flex items-center">
+        <div class="p-3 bg-white/20 rounded-lg">
+          <i class="fas fa-users text-xl md:text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-white/80 text-xs md:text-sm">Total Members</p>
+          <h3 class="text-xl md:text-2xl font-bold">{{ member_count|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 shadow-lg text-white">
+      <div class="flex items-center">
+        <div class="p-3 bg-white/20 rounded-lg">
+          <i class="fas fa-church text-xl md:text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-white/80 text-xs md:text-sm">Churches</p>
+          <h3 class="text-xl md:text-2xl font-bold">{{ church_count|default:"1" }}</h3>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 shadow-lg text-white">
+      <div class="flex items-center">
+        <div class="p-3 bg-white/20 rounded-lg">
+          <i class="fas fa-calendar-check text-xl md:text-2xl"></i>
+        </div>
+        <div class="ml-4">
+          <p class="text-white/80 text-xs md:text-sm">New This Month</p>
+          <h3 class="text-xl md:text-2xl font-bold">{{ new_members|default:"0" }}</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JavaScript for Real-Time Search -->
+<script>
+let searchTimeout;
+
+function searchMembers() {
+  const searchInput = document.getElementById('search');
+  const query = searchInput.value.trim();
+  const tableBody = document.getElementById('member-table').querySelector('tbody');
+  
+  // Show loading state
+  tableBody.innerHTML = `
+    <tr>
+      <td colspan="15" class="px-4 py-8 text-center">
+        <div class="flex justify-center">
+          <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-orange-500"></div>
+        </div>
+      </td>
+    </tr>`;
+  
+  // Clear previous timeout
+  clearTimeout(searchTimeout);
+  
+  // Set new timeout for search (300ms debounce)
+  searchTimeout = setTimeout(() => {
+    // Only search if query is at least 1 character or empty
+    if (query.length >= 1 || query.length === 0) {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', `?q=${encodeURIComponent(query)}`, true);
+      xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+      
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          tableBody.innerHTML = xhr.responseText;
+          // Re-initialize any dynamic elements if needed
+          initializeTableRows();
+          // Re-attach delete button listeners for newly injected rows
+          attachDeleteListeners();
+        }
+      };
+      
+      xhr.onerror = function() {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="15" class="px-4 py-8 text-center text-red-600">
+              <i class="fas fa-exclamation-circle mr-2"></i>
+              Error loading results. Please try again.
+            </td>
+          </tr>`;
+      };
+      
+      xhr.send();
+    }
+  }, 300);
+}
+
+function initializeTableRows() {
+  const tableRows = document.querySelectorAll('#member-table tbody tr');
+  tableRows.forEach((row, index) => {
+    row.style.opacity = '0';
+    row.style.transform = 'translateY(10px)';
+    row.style.transition = `opacity 0.3s ease ${index * 0.05}s, transform 0.3s ease ${index * 0.05}s`;
+    
+    // Trigger reflow
+    void row.offsetWidth;
+    
+    // Animate in
+    row.style.opacity = '1';
+    row.style.transform = 'translateY(0)';
+  });
+}
+
+function attachDeleteListeners() {
+  // Attach listeners to delete buttons (called after AJAX reloads too)
+  document.querySelectorAll('.delete-member-btn').forEach(btn => {
+    // Ensure we don't duplicate listeners: clone and replace node
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+  });
+  document.querySelectorAll('.delete-member-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      const url = this.getAttribute('data-delete-url');
+      const name = this.getAttribute('data-member-name');
+      const modal = document.getElementById('deleteModal');
+      const modalName = document.getElementById('deleteModalName');
+      const modalForm = document.getElementById('deleteModalForm');
+      modalForm.action = url;
+      modalName.textContent = name;
+      modal.classList.remove('hidden');
+    });
+  });
+}
+
+// Handle items per page change
+document.getElementById('per-page')?.addEventListener('change', function(e) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('per_page', e.target.value);
+  window.location.href = url.toString();
+});
+
+// Initialize table rows on page load
+document.addEventListener('DOMContentLoaded', function() {
+  initializeTableRows();
+  
+  // Add event listener for search input clear button (if using a clear button)
+  const searchInput = document.getElementById('search');
+  const clearButton = searchInput.nextElementSibling;
+  
+  if (clearButton && clearButton.classList.contains('clear-search')) {
+    clearButton.addEventListener('click', function() {
+      searchInput.value = '';
+      searchInput.focus();
+      searchMembers();
+    });
+  }
+  
+  // Delete modal handling: open modal and set form action
+  // Attach delete handlers (also called after AJAX loads)
+  attachDeleteListeners();
+
+  // Close modal buttons
+  document.querySelectorAll('.close-delete-modal').forEach(el => {
+    el.addEventListener('click', function() {
+      document.getElementById('deleteModal').classList.add('hidden');
+    });
+  });
+});
+</script>
+
+<!-- Delete confirmation modal (hidden by default) -->
+<div id="deleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 hidden">
+  <div class="bg-white rounded-xl shadow-lg max-w-md w-full p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm delete</h3>
+    <p class="text-sm text-gray-600 mb-4">Are you sure you want to delete <strong id="deleteModalName"></strong>?</p>
+    <form id="deleteModalForm" method="post">
+      {% csrf_token %}
+      <div class="flex justify-end gap-3">
+        <button type="button" class="close-delete-modal inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50">Cancel</button>
+        <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-md text-sm hover:bg-red-700">Yes, delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

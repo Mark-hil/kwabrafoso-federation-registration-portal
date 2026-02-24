@@ -1,0 +1,112 @@
+<!-- members/templates/members/member_list_rows.html -->
+{% for member in members %}
+<tr class="hover:bg-gray-50 transition-colors duration-200">
+    <td class="px-4 py-3 whitespace-nowrap">
+        {% if member.picture %}
+        <img src="{{ member.picture.url }}" alt="{{ member.first_name }}" class="h-10 w-10 rounded-full object-cover border border-gray-200"> 
+        {% else %}
+        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+            <i class="fas fa-user"></i>
+        </div>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap">
+        <div class="font-medium text-gray-900">{{ member.first_name }} {{ member.last_name }}</div>
+        <div class="text-xs text-gray-500">
+            {{ member.get_gender_display }} • 
+            {% if member.room %}
+                <span class="text-blue-600 font-medium" title="Room: {{ member.room.name }}">
+                    <i class="fas fa-door-open"></i> {{ member.room.name }}
+                </span>
+            {% endif %}
+        </div>
+        {% if member.allergies %}
+            <div class="text-xs text-red-600 mt-1" title="Allergies: {{ member.allergies }}">
+                <i class="fas fa-exclamation-triangle"></i> Has allergies
+            </div>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap">
+        <div class="text-sm text-gray-900">{{ member.email|default:"-" }}</div>
+        <div class="text-sm text-gray-500">{{ member.phone_number|default:"-" }}</div>
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        <div>{{ member.profession|default:"-" }}</div>
+        <!-- <div class="text-xs text-gray-500">{{ member.nhis_number|default:"" }}</div> -->
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {{ member.church|default:"-" }}
+      
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {{ member.district|default:"-" }}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {% if member.division %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                Division {{ member.division }}
+            </span>
+        {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                Unassigned
+            </span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {{ member.date_of_birth|date:"M d, Y"|default:"-" }}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {{ member.nhis_number|default:"-" }}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600 max-w-xs">
+        {% if member.allergies_list %}
+            <div class="flex flex-wrap gap-1">
+                {% for allergy in member.allergies_list|slice:":3" %}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        {{ allergy|truncatechars:15 }}
+                    </span>
+                {% endfor %}
+                {% if member.allergies_list|length > 3 %}
+                    <span class="text-xs text-gray-500">+{{ member.allergies_list|length|add:"-3" }} more</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <span class="text-gray-400">None</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        <div class="font-medium">{{ member.guardian_name|default:"Not specified" }}</div>
+        <div class="text-xs text-gray-500">
+            <i class="fas fa-phone-alt mr-1"></i>
+            {{ member.guardian_phone_number|default:"No contact" }}
+        </div>
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {% if member.vegetarian %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Yes</span>
+        {% else %}
+            <span class="text-sm text-gray-400">No</span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap">
+        <div class="flex space-x-2">
+            <a href="{% url 'edit_member' member.pk %}" class="text-blue-600 hover:text-blue-800 transition-colors p-1.5 hover:bg-blue-100 rounded-full">
+                <i class="fas fa-edit"></i>
+            </a>
+            <button type="button" title="Delete member" class="delete-member-btn text-red-600 hover:text-red-800 transition-colors p-1.5 hover:bg-red-100 rounded-full bg-transparent border-0" data-delete-url="{% url 'delete_member' member.pk %}" data-member-name="{{ member.first_name }} {{ member.last_name }}">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="15" class="px-4 py-8 text-center text-gray-500">
+        <div class="flex flex-col items-center">
+            <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
+            <p class="text-lg font-medium">No members found</p>
+            <p class="text-sm mt-1">Try adjusting your search or add new members</p>
+        </div>
+    </td>
+</tr>
+{% endfor %}
