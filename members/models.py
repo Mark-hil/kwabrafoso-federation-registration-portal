@@ -22,7 +22,7 @@ class MembershipClass(models.Model):
 
 class Room(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    capacity = models.PositiveIntegerField(default=40)
+    capacity = models.PositiveIntegerField(default=20)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -141,6 +141,24 @@ class Room(models.Model):
                 raise
 
 
+class Unit(models.Model):
+    name = models.CharField(max_length=100)
+    division = models.PositiveSmallIntegerField(help_text="Division number (1-5)")
+    capacity = models.PositiveIntegerField(default=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['division', 'name']
+        unique_together = ['division', 'name']
+    
+    def __str__(self):
+        return f"Division {self.division} - {self.name} ({self.members.count()}/{self.capacity})"
+    
+    @property
+    def is_full(self):
+        return self.members.count() >= self.capacity
+
+
 class Member(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -181,11 +199,13 @@ class Member(models.Model):
     district = models.CharField('District', max_length=100, blank=True, null=True)
     qr_code = models.BinaryField(null=True, blank=True)
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
-    division = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Division number (1-4)")
+    division = models.PositiveSmallIntegerField(null=True, blank=True, help_text="Division number (1-5)")
+    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+    registered_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='registered_members')
     
     def assign_division(self, save=True):
         """
-        Assign this member to a division (1-4) with balanced distribution.
+        Assign this member to a division (1-5) with balanced distribution.
         Ensures no other members in the same room are in the same division,
         and limits the number of members from the same church/district in a division.
         """
@@ -195,7 +215,7 @@ class Member(models.Model):
         if self.division:
             return self.division
 
-        divisions = [1, 2, 3, 4]
+        divisions = [1, 2, 3, 4, 5]
         
         # Get divisions already used in this room
         used_divisions = set()
@@ -256,6 +276,47 @@ class Member(models.Model):
             self.save(update_fields=['division'])
         
         return chosen_division
+    
+    def assign_unit(self, save=True):
+        """
+        Assign this member to a unit within their division.
+        Each unit has capacity of 10 members.
+        """
+        from django.db.models import Count, Q
+        
+        if not self.division:
+            # First assign to a division
+            self.assign_division(save=False)
+        
+        if self.unit:
+            return self.unit
+        
+        # Get available units in this division (not full)
+        available_units = Unit.objects.filter(
+            division=self.division
+        ).annotate(
+            member_count=Count('members')
+        ).filter(member_count__lt=10)
+        
+        if available_units.exists():
+            # Choose the unit with fewest members
+            unit = available_units.order_by('member_count').first()
+        else:
+            # Create a new unit for this division
+            unit_count = Unit.objects.filter(division=self.division).count()
+            unit_name = f"Unit {unit_count + 1}"
+            unit = Unit.objects.create(
+                name=unit_name,
+                division=self.division,
+                capacity=10
+            )
+        
+        self.unit = unit
+        
+        if save:
+            self.save(update_fields=['unit'])
+        
+        return unit
         
     def assign_room(self, save=True):
         """
@@ -290,13 +351,17 @@ class Member(models.Model):
         
         # Always assign a new division when room changes
         self.division = None
+        self.unit = None
         self.assign_division(save=False)
+        self.assign_unit(save=False)
         
         # Only save if explicitly requested to prevent recursion
         if save:
             update_fields = ['room']
             if self.division:
                 update_fields.append('division')
+            if self.unit:
+                update_fields.append('unit')
             self.save(update_fields=update_fields)
             
         return room
@@ -314,8 +379,13 @@ class Member(models.Model):
             if not self.room:
                 try:
                     self.assign_room(save=False)
-                    # Save just the room assignment to avoid recursion
-                    super().save(update_fields=['room'])
+                    # Save just the room, division, and unit assignments to avoid recursion
+                    update_fields = ['room']
+                    if self.division:
+                        update_fields.append('division')
+                    if self.unit:
+                        update_fields.append('unit')
+                    super().save(update_fields=update_fields)
                 except Exception as e:
                     # Log the error but don't fail the save
                     import logging

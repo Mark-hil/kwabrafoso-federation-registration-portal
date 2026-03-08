@@ -1,0 +1,400 @@
+{% extends 'members/base2.html' %}
+{% block title %}System Configuration{% endblock %}
+{% block content %}
+
+<div class="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50/30">
+  <!-- Animated Background Pattern -->
+  <div class="fixed inset-0 -z-10 overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-orange-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Enhanced Header -->
+    <div class="mb-10 relative">
+      <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl transform -skew-y-1"></div>
+      <div class="relative bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <i class="fas fa-cogs text-white text-2xl"></i>
+            </div>
+            <div>
+              <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">System Configuration</h1>
+              <p class="text-gray-600 mt-2 text-base">Manage global settings for room, division, and unit assignments</p>
+            </div>
+          </div>
+          <a href="{% url 'admin_dashboard' %}" class="group inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl hover:from-gray-700 hover:to-gray-800 transition-all duration-300 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-arrow-left mr-2 group-hover:-translate-x-1 transition-transform"></i> 
+            Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+      <div class="group relative bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+        <div class="absolute inset-0 bg-white/10 rounded-2xl transform -skew-x-12 -translate-x-2"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <i class="fas fa-users text-white text-xl"></i>
+            </div>
+            <div class="text-right">
+              <p class="text-blue-100 text-sm font-medium">Total</p>
+              <p class="text-3xl font-bold">{{ total_members }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <p class="text-blue-100 font-medium">Members</p>
+            <div class="w-full max-w-xs bg-blue-400/30 rounded-full h-2">
+              <div class="bg-white h-2 rounded-full transition-all duration-500" style="width: {{ utilization.members|floatformat:0 }}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="group relative bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+        <div class="absolute inset-0 bg-white/10 rounded-2xl transform -skew-x-12 -translate-x-2"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <i class="fas fa-home text-white text-xl"></i>
+            </div>
+            <div class="text-right">
+              <p class="text-green-100 text-sm font-medium">Active</p>
+              <p class="text-3xl font-bold">{{ total_rooms }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <p class="text-green-100 font-medium">Rooms</p>
+            <p class="text-sm text-green-200">{{ utilization.rooms }} full</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="group relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+        <div class="absolute inset-0 bg-white/10 rounded-2xl transform -skew-x-12 -translate-x-2"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <i class="fas fa-layer-group text-white text-xl"></i>
+            </div>
+            <div class="text-right">
+              <p class="text-orange-100 text-sm font-medium">Total</p>
+              <p class="text-3xl font-bold">{{ total_units }}</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <p class="text-orange-100 font-medium">Units</p>
+            <p class="text-sm text-orange-200">{{ utilization.units }} full</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="group relative bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+        <div class="absolute inset-0 bg-white/10 rounded-2xl transform -skew-x-12 -translate-x-2"></div>
+        <div class="relative">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+              <i class="fas fa-chart-pie text-white text-xl"></i>
+            </div>
+            <div class="text-right">
+              <p class="text-purple-100 text-sm font-medium">System</p>
+              <p class="text-3xl font-bold">{{ utilization.members|floatformat:1 }}%</p>
+            </div>
+          </div>
+          <div class="flex items-center justify-between">
+            <p class="text-purple-100 font-medium">Utilization</p>
+            <div class="w-full max-w-xs bg-purple-400/30 rounded-full h-2">
+              <div class="bg-white h-2 rounded-full transition-all duration-500" style="width: {{ utilization.members|floatformat:0 }}%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enhanced Configuration Form -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+      <div class="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-3xl font-bold text-white flex items-center">
+            <i class="fas fa-sliders-h mr-3"></i>
+            Global Settings
+          </h2>
+          <div class="flex items-center space-x-2">
+            <div class="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+            <span class="text-green-100 text-base font-medium">System Active</span>
+          </div>
+        </div>
+      </div>
+      
+      <form method="post" class="p-8">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Division Settings -->
+          <div class="space-y-6">
+            <div class="flex items-center space-x-3 pb-3 border-b border-gray-200">
+              <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users-cog text-blue-600"></i>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900">Division Settings</h3>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="group">
+                <label for="{{ form.total_divisions.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-2 group-hover:text-blue-600 transition-colors">
+                  <i class="fas fa-layer-group mr-2"></i>Total Divisions
+                </label>
+                {{ form.total_divisions }}
+                <p class="text-sm text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Number of divisions for member assignment
+                </p>
+              </div>
+              
+              <div class="group">
+                <label for="{{ form.members_per_division.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-2 group-hover:text-blue-600 transition-colors">
+                  <i class="fas fa-user-friends mr-2"></i>Members per Division
+                </label>
+                {{ form.members_per_division }}
+                <p class="text-sm text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Target capacity for each division
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Unit Settings -->
+          <div class="space-y-6">
+            <div class="flex items-center space-x-3 pb-3 border-b border-gray-200">
+              <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-layer-group text-orange-600"></i>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900">Unit Settings</h3>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="group">
+                <label for="{{ form.units_per_division.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-2 group-hover:text-orange-600 transition-colors">
+                  <i class="fas fa-th mr-2"></i>Units per Division
+                </label>
+                {{ form.units_per_division }}
+                <p class="text-sm text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Number of units within each division
+                </p>
+              </div>
+              
+              <div class="group">
+                <label for="{{ form.members_per_unit.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-2 group-hover:text-orange-600 transition-colors">
+                  <i class="fas fa-users mr-2"></i>Members per Unit
+                </label>
+                {{ form.members_per_unit }}
+                <p class="text-sm text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Maximum capacity for each unit
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Room Settings -->
+          <div class="space-y-6">
+            <div class="flex items-center space-x-3 pb-3 border-b border-gray-200">
+              <div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-home text-green-600"></i>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900">Room Settings</h3>
+            </div>
+            
+            <div class="space-y-4">
+              <div class="group">
+                <label for="{{ form.default_room_capacity.id_for_label }}" class="block text-base font-semibold text-gray-700 mb-2 group-hover:text-green-600 transition-colors">
+                  <i class="fas fa-bed mr-2"></i>Default Room Capacity
+                </label>
+                {{ form.default_room_capacity }}
+                <p class="text-sm text-gray-500 mt-2 flex items-center">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Default capacity for new rooms
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Assignment Rules -->
+          <div class="space-y-6">
+            <div class="flex items-center space-x-3 pb-3 border-b border-gray-200">
+              <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-magic text-purple-600"></i>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900">Assignment Rules</h3>
+            </div>
+            
+            <div class="space-y-4 bg-gray-50 rounded-xl p-4">
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                  {{ form.enable_auto_assignment }}
+                  <label for="{{ form.enable_auto_assignment.id_for_label }}" class="ml-3 text-base font-medium text-gray-700 cursor-pointer">
+                    <i class="fas fa-robot mr-2 text-blue-500"></i>
+                    Enable automatic assignment for new members
+                  </label>
+                </div>
+                <div class="w-2 h-2 rounded-full {% if config.enable_auto_assignment %}bg-green-500{% else %}bg-gray-300{% endif %}"></div>
+              </div>
+              
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                  {{ form.balance_by_church }}
+                  <label for="{{ form.balance_by_church.id_for_label }}" class="ml-3 text-base font-medium text-gray-700 cursor-pointer">
+                    <i class="fas fa-church mr-2 text-purple-500"></i>
+                    Balance members by church
+                  </label>
+                </div>
+                <div class="w-2 h-2 rounded-full {% if config.balance_by_church %}bg-green-500{% else %}bg-gray-300{% endif %}"></div>
+              </div>
+              
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                  {{ form.balance_by_district }}
+                  <label for="{{ form.balance_by_district.id_for_label }}" class="ml-3 text-base font-medium text-gray-700 cursor-pointer">
+                    <i class="fas fa-map-marked-alt mr-2 text-green-500"></i>
+                    Balance members by district
+                  </label>
+                </div>
+                <div class="w-2 h-2 rounded-full {% if config.balance_by_district %}bg-green-500{% else %}bg-gray-300{% endif %}"></div>
+              </div>
+              
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg hover:shadow-md transition-shadow">
+                <div class="flex items-center">
+                  {{ form.balance_by_gender }}
+                  <label for="{{ form.balance_by_gender.id_for_label }}" class="ml-3 text-base font-medium text-gray-700 cursor-pointer">
+                    <i class="fas fa-venus-mars mr-2 text-pink-500"></i>
+                    Separate rooms by gender when possible
+                  </label>
+                </div>
+                <div class="w-2 h-2 rounded-full {% if config.balance_by_gender %}bg-green-500{% else %}bg-gray-300{% endif %}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Enhanced System Summary -->
+        <div class="mt-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 border border-blue-200">
+          <div class="flex items-center justify-between mb-4">
+            <h4 class="font-bold text-blue-900 flex items-center text-2xl">
+              <i class="fas fa-chart-line mr-2"></i>
+              System Summary
+            </h4>
+            <div class="flex items-center space-x-2">
+              <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span class="text-base text-green-700 font-medium">Optimized</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-blue-700 font-medium flex items-center">
+                  <i class="fas fa-database mr-2"></i>Total Capacity
+                </span>
+                <span class="text-3xl font-bold text-blue-900">{{ config.total_capacity }}</span>
+              </div>
+              <p class="text-sm text-gray-500 mt-2">Maximum system capacity</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-blue-700 font-medium flex items-center">
+                  <i class="fas fa-th mr-2"></i>Total Units
+                </span>
+                <span class="text-3xl font-bold text-blue-900">{{ config.total_units }}</span>
+              </div>
+              <p class="text-sm text-gray-500 mt-2">{{ config.units_per_division }} per division</p>
+            </div>
+            <div class="bg-white rounded-xl p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <span class="text-blue-700 font-medium flex items-center">
+                  <i class="fas fa-calculator mr-2"></i>Unit Structure
+                </span>
+                <span class="text-2xl font-bold text-blue-900">{{ config.units_per_division }}×{{ config.members_per_unit }}</span>
+              </div>
+              <p class="text-sm text-gray-500 mt-2">Units × Members per unit</p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Enhanced Form Actions -->
+        <div class="mt-8 flex justify-between items-center">
+          <div class="text-base text-gray-500">
+            <i class="fas fa-clock mr-1"></i>
+            Last updated: {{ config.updated_at|date:"M d, Y H:i" }}
+          </div>
+          <button type="submit" class="group px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 font-semibold text-base">
+            <i class="fas fa-save mr-2 group-hover:scale-110 transition-transform"></i> 
+            Save Configuration
+          </button>
+        </div>
+      </form>
+    </div>
+    
+    <!-- Enhanced Quick Actions -->
+    <div class="mt-10 grid grid-cols-1 md:grid-cols-4 gap-6">
+      <a href="{% url 'room_overrides' %}" class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center shadow-md">
+            <i class="fas fa-home text-white text-lg"></i>
+          </div>
+          <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fas fa-arrow-right text-green-600 text-xs"></i>
+          </div>
+        </div>
+        <h3 class="font-bold text-gray-900 text-xl mb-1">Room Overrides</h3>
+        <p class="text-base text-gray-600">Custom room capacities</p>
+      </a>
+      
+      <a href="{% url 'division_overrides' %}" class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center shadow-md">
+            <i class="fas fa-users-cog text-white text-lg"></i>
+          </div>
+          <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fas fa-arrow-right text-blue-600 text-xs"></i>
+          </div>
+        </div>
+        <h3 class="font-bold text-gray-900 text-xl mb-1">Division Overrides</h3>
+        <p class="text-base text-gray-600">Custom division capacities</p>
+      </a>
+      
+      <a href="{% url 'unit_overrides' %}" class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-md">
+            <i class="fas fa-layer-group text-white text-lg"></i>
+          </div>
+          <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fas fa-arrow-right text-orange-600 text-xs"></i>
+          </div>
+        </div>
+        <h3 class="font-bold text-gray-900 text-xl mb-1">Unit Overrides</h3>
+        <p class="text-base text-gray-600">Custom unit capacities</p>
+      </a>
+      
+      <a href="{% url 'manual_assignment' %}" class="group bg-white rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+          <div class="w-12 h-12 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
+            <i class="fas fa-user-edit text-white text-lg"></i>
+          </div>
+          <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+            <i class="fas fa-arrow-right text-purple-600 text-xs"></i>
+          </div>
+        </div>
+        <h3 class="font-bold text-gray-900 text-xl mb-1">Manual Assignment</h3>
+        <p class="text-base text-gray-600">Assign members manually</p>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

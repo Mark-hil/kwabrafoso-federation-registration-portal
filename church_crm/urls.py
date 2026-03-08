@@ -38,6 +38,13 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+# Import custom error handlers
+from members.error_handlers import custom_404, custom_500, custom_403
+
+handler404 = 'members.error_handlers.custom_404'
+handler500 = 'members.error_handlers.custom_500'
+handler403 = 'members.error_handlers.custom_403'
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('members.urls')),  # Include the URLs from the members app

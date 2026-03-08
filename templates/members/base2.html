@@ -86,7 +86,8 @@
         <nav id="sidebar" class="fixed h-screen w-72 bg-gradient-to-b from-gray-800 to-gray-900 text-white transition-all duration-300 shadow-lg z-50 overflow-y-auto no-scrollbar mobile-sidebar-hidden md:mobile-sidebar-visible">
             <div class="flex flex-col h-full">
                 <div class="p-5 text-center text-xl font-semibold tracking-wider border-b border-gray-700/30">
-                   K'foso Distict AYM
+                   <span class="sidebar-expanded">Phoenix Peacock Adventist Youth Ministry</span>
+                   <span class="sidebar-collapsed hidden">PPAYM</span>
                 </div>
                 <button id="toggleButton" class="w-full text-left px-8 py-3 text-white bg-transparent hover:bg-white/10 transition-all duration-300 hidden md:block">
                     <i id="toggleIcon" class="fas fa-angle-left"></i>
@@ -94,16 +95,30 @@
                 <div class="flex-1 overflow-y-auto">
                     <ul class="py-2">
                     <li>
-                        <a href="{% url 'dashboard' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                        {% if user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                             <i class="fas fa-chart-line w-5 text-center"></i>
                             <span class="ml-3">Dashboard</span>
                         </a>
+                        {% else %}
+                        <a href="{% url 'user_dashboard' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                            <i class="fas fa-chart-line w-5 text-center"></i>
+                            <span class="ml-3">Dashboard</span>
+                        </a>
+                        {% endif %}
                     </li>
                 <li>
+                    {% if user.is_staff %}
                     <a href="{% url 'member_list' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                         <i class="fas fa-users w-5 text-center"></i>
-                        <span class="ml-3">Member List</span>
+                        <span class="ml-3">All Members</span>
                     </a>
+                    {% else %}
+                    <a href="{% url 'my_members' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                        <i class="fas fa-users w-5 text-center"></i>
+                        <span class="ml-3">My Members</span>
+                    </a>
+                    {% endif %}
                 </li>
                 <li>
                     <a href="{% url 'add_member' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
@@ -111,6 +126,26 @@
                         <span class="ml-3">Register Member</span>
                     </a>
                 </li>
+                {% if user.is_staff %}
+                <li>
+                    <a href="{% url 'room_division_stats' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                        <i class="fas fa-chart-bar w-5 text-center"></i>
+                        <span class="ml-3">Room & Division Stats</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'system_configuration' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                        <i class="fas fa-cogs w-5 text-center"></i>
+                        <span class="ml-3">System Configuration</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'manual_assignment' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
+                        <i class="fas fa-user-edit w-5 text-center"></i>
+                        <span class="ml-3">Manual Assignment</span>
+                    </a>
+                </li>
+                {% endif %}
                 <li>
                     <a href="{% url 'attendance_report' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                         <i class="fas fa-clipboard-list w-5 text-center"></i>
@@ -123,6 +158,7 @@
                         <span class="ml-3">Attendance Type</span>
                     </a>
                 </li>
+                {% if user.is_staff %}
                 <li>
                     <a href="{% url 'add_visitor' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
                         <i class="fas fa-user-tag w-5 text-center"></i>
@@ -134,7 +170,8 @@
                         <i class="fas fa-user-friends w-5 text-center"></i>
                         <span class="ml-3">Visitor List</span>
                     </a>
-                    </li>
+                </li>
+                {% endif %}
                     {% if user.is_authenticated and user.is_superuser %}
                     <li>
                         <a href="{% url 'admin_signup' %}" class="flex items-center px-5 py-3 mx-3 my-1 rounded-lg text-white/80 hover:bg-secondary hover:text-white transition-all duration-300 hover:shadow-md hover:-translate-y-0.5">
@@ -201,39 +238,57 @@
             const sidebarLinks = document.querySelectorAll('#sidebar a span');
             
             function toggleSidebar() {
-                const isCollapsed = sidebar.classList.toggle('w-20');
-                sidebar.classList.toggle('w-64', !isCollapsed);
-                mainContent.classList.toggle('ml-20', isCollapsed);
-                mainContent.classList.toggle('md:ml-20', isCollapsed);
-                mainContent.classList.toggle('ml-64', !isCollapsed);
-                mainContent.classList.toggle('md:ml-64', !isCollapsed);
+                const isCurrentlyCollapsed = sidebar.classList.contains('w-25');
                 
-                sidebarLinks.forEach(span => {
-                    span.classList.toggle('hidden', isCollapsed);
-                });
-                
-                if (isCollapsed) {
-                    toggleIcon.classList.remove('fa-angle-left');
-                    toggleIcon.classList.add('fa-angle-right');
-                } else {
+                if (isCurrentlyCollapsed) {
+                    // Expand sidebar
+                    sidebar.classList.remove('w-25');
+                    sidebar.classList.add('w-72');
+                    sidebar.classList.remove('w-64');  // Remove any w-64 if present
+                    mainContent.classList.remove('ml-25', 'md:ml-25');
+                    mainContent.classList.add('ml-72', 'md:ml-72');
+                    mainContent.classList.remove('ml-64', 'md:ml-64');  // Remove any ml-64 if present
+                    sidebarLinks.forEach(span => span.classList.remove('hidden'));
                     toggleIcon.classList.remove('fa-angle-right');
                     toggleIcon.classList.add('fa-angle-left');
+                    localStorage.setItem('sidebarCollapsed', 'false');
+                    
+                    // Show full name, hide abbreviated
+                    document.querySelector('.sidebar-expanded').classList.remove('hidden');
+                    document.querySelector('.sidebar-collapsed').classList.add('hidden');
+                } else {
+                    // Collapse sidebar
+                    sidebar.classList.add('w-25');
+                    sidebar.classList.remove('w-72');
+                    sidebar.classList.remove('w-64');  // Remove any w-64 if present
+                    mainContent.classList.add('ml-25', 'md:ml-25');
+                    mainContent.classList.remove('ml-72', 'md:ml-72');  // Remove any ml-72 if present
+                    mainContent.classList.remove('ml-64', 'md:ml-64');  // Remove any ml-64 if present
+                    sidebarLinks.forEach(span => span.classList.add('hidden'));
+                    toggleIcon.classList.remove('fa-angle-left');
+                    toggleIcon.classList.add('fa-angle-right');
+                    localStorage.setItem('sidebarCollapsed', 'true');
+                    
+                    // Show abbreviated name, hide full name
+                    document.querySelector('.sidebar-expanded').classList.add('hidden');
+                    document.querySelector('.sidebar-collapsed').classList.remove('hidden');
                 }
-                
-                // Save state to localStorage
-                localStorage.setItem('sidebarCollapsed', isCollapsed);
             }
             
             // Initialize from localStorage
             const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
             if (isCollapsed) {
-                sidebar.classList.add('w-20');
-                sidebar.classList.remove('w-64');
-                mainContent.classList.add('ml-20', 'md:ml-20');
-                mainContent.classList.remove('ml-64', 'md:ml-64');
+                sidebar.classList.add('w-25');
+                sidebar.classList.remove('w-72');
+                sidebar.classList.remove('w-64');  // Remove any w-64 if present
+                mainContent.classList.add('ml-25', 'md:ml-25');
+                mainContent.classList.remove('ml-72', 'md:ml-72');  // Remove any ml-72 if present
+                mainContent.classList.remove('ml-64', 'md:ml-64');  // Remove any ml-64 if present
                 sidebarLinks.forEach(span => span.classList.add('hidden'));
-                toggleIcon.classList.remove('fa-angle-left');
-                toggleIcon.classList.add('fa-angle-right');
+                
+                // Show abbreviated name, hide full name
+                document.querySelector('.sidebar-expanded').classList.add('hidden');
+                document.querySelector('.sidebar-collapsed').classList.remove('hidden');
             }
             
             // Add event listener
@@ -256,6 +311,7 @@
             const sidebar = document.getElementById('sidebar');
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const menuItems = document.querySelectorAll('#sidebar a');
             
             // Setup sidebar toggle
             setupSidebarToggle();

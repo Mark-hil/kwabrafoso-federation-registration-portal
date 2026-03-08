@@ -5,6 +5,6 @@
 <form method="post">
     {% csrf_token %}
     <button type="submit">Yes, Delete</button>
-    <a href="{% url 'member_list' %}">Cancel</a>
+    <a href="{% if user.is_staff %}{% url 'member_list' %}{% else %}{% url 'my_members' %}{% endif %}">Cancel</a>
 </form>
 {% endblock %}

@@ -1,0 +1,268 @@
+{% extends 'members/base2.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% load member_filters %}
+{% block title %}My Registered Members{% endblock %} 
+{% block content %}
+
+<div class="w-full max-w-6xl mx-auto px-4 my-10">
+  <!-- Header with decorative elements -->
+  <div class="relative mb-6 md:mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+      My Registered Members
+    </h1>
+    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"></div>
+    <p class="text-gray-500 mt-2 text-sm md:text-base">View and manage members you have registered</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 border border-gray-100">
+    <!-- Action Buttons and Search Bar -->
+    <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
+      <!-- User Actions -->
+      <div class="flex flex-wrap gap-2 md:gap-3">
+        <a href="{% url 'add_member' %}" class="flex items-center px-3 md:px-4 py-2 md:py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-medium rounded-lg shadow-md hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:shadow-lg text-sm md:text-base">
+          <i class="fas fa-user-plus mr-1 md:mr-2"></i> Register New Member
+        </a>
+        <a href="{% url 'user_dashboard' %}" class="flex items-center px-3 md:px-4 py-2 md:py-2.5 bg-gray-500 text-white font-medium rounded-lg shadow-md hover:from-gray-600 hover:to-gray-700 transition-all duration-300 hover:shadow-lg text-sm md:text-base">
+          <i class="fas fa-arrow-left mr-1 md:mr-2"></i> Back to Dashboard
+        </a>
+      </div>
+      
+      <!-- Search Form -->
+      <div class="relative w-full md:w-64 lg:w-80">
+        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
+          <i class="fas fa-search"></i>
+        </span>
+        <input 
+          type="text" 
+          id="search" 
+          class="w-full pl-10 pr-4 py-2.5 text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-colors" 
+          placeholder="Search my members..." 
+          onkeyup="searchMembers()"
+        >
+      </div>
+    </div>
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-blue-600 text-sm font-medium">Total Members</p>
+            <p class="text-2xl font-bold text-blue-800">{{ member_count|intcomma }}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-users text-white"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-green-600 text-sm font-medium">New This Month</p>
+            <p class="text-2xl font-bold text-green-800">{{ new_members|intcomma }}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-user-plus text-white"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-purple-600 text-sm font-medium">Churches</p>
+            <p class="text-2xl font-bold text-purple-800">{{ church_count|intcomma }}</p>
+          </div>
+          <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+            <i class="fas fa-church text-white"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Table Instructions for Mobile -->
+    <div class="md:hidden mb-4 bg-blue-50 p-3 rounded-lg text-sm text-blue-700">
+      <i class="fas fa-info-circle mr-2"></i>
+      Swipe left/right on the table to view more information about each member.
+    </div>
+
+    <!-- Members Table -->
+    <div class="overflow-x-auto rounded-lg border border-gray-200">
+      <table class="w-full bg-white divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Member</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Church/District</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Room</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Division</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Unit</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200" id="memberTableBody">
+          {% for member in members %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                  {% if member.picture %}
+                    <img class="h-10 w-10 rounded-full object-cover" src="{{ member.picture.url }}" alt="{{ member.first_name }}">
+                  {% else %}
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                      <span class="text-white font-medium text-sm">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</span>
+                    </div>
+                  {% endif %}
+                </div>
+                <div class="ml-3">
+                  <div class="text-sm font-medium text-gray-900">{{ member.first_name }} {{ member.last_name }}</div>
+                  <div class="text-xs text-gray-500">{{ member.get_gender_display }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">{{ member.email }}</div>
+              <div class="text-xs text-gray-500">{{ member.phone_number }}</div>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+              <div class="text-sm text-gray-900">{{ member.church|default:"Not specified" }}</div>
+              <div class="text-xs text-gray-500">{{ member.district|default:"Not specified" }}</div>
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+              {% if member.room %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                  {{ member.room.name }}
+                </span>
+              {% else %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                  Not assigned
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+              {% if member.division %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  Division {{ member.division }}
+                </span>
+              {% else %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                  Not assigned
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+              {% if member.unit %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800">
+                  {{ member.unit.name }}
+                </span>
+              {% else %}
+                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                  Not assigned
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+              <div class="flex space-x-2">
+                <a href="{% url 'view_qr_code' member.id %}" class="text-orange-600 hover:text-orange-900 transition-colors" title="View QR Code">
+                  <i class="fas fa-qrcode"></i>
+                </a>
+                <a href="{% url 'edit_member' member.id %}" class="text-blue-600 hover:text-blue-900 transition-colors" title="Edit Member">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'delete_member' member.id %}" class="text-red-600 hover:text-red-900 transition-colors" title="Delete Member">
+                  <i class="fas fa-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+              <div class="flex flex-col items-center">
+                <i class="fas fa-users-slash text-4xl text-gray-300 mb-3"></i>
+                <p class="text-lg font-medium">No members found</p>
+                <p class="text-sm mt-1">Start by registering your first member!</p>
+                <a href="{% url 'add_member' %}" class="mt-4 inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+                  <i class="fas fa-user-plus mr-2"></i> Register Member
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+      <div class="text-sm text-gray-700">
+        Showing {{ members.start_index }} to {{ members.end_index }} of {{ paginator.count }} results
+      </div>
+      <div class="flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+          {% if members.has_previous %}
+            <a href="?page={{ members.previous_page_number }}&per_page={{ per_page }}" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          {% endif %}
+          
+          {% for num in members.paginator.page_range %}
+            {% if members.number == num %}
+              <span aria-current="page" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-orange-500 text-sm font-medium text-white">{{ num }}</span>
+            {% elif num > members.number|add:'-3' and num < members.number|add:'3' %}
+              <a href="?page={{ num }}&per_page={{ per_page }}" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+          
+          {% if members.has_next %}
+            <a href="?page={{ members.next_page_number }}&per_page={{ per_page }}" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          {% endif %}
+        </nav>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function searchMembers() {
+  const searchValue = document.getElementById('search').value.toLowerCase();
+  const rows = document.querySelectorAll('#memberTableBody tr');
+  
+  rows.forEach(row => {
+    const text = row.textContent.toLowerCase();
+    if (text.includes(searchValue)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+// AJAX search for better performance
+let searchTimeout;
+document.getElementById('search').addEventListener('input', function(e) {
+  clearTimeout(searchTimeout);
+  searchTimeout = setTimeout(() => {
+    const query = e.target.value;
+    if (query.length > 2 || query.length === 0) {
+      fetch(`?q=${encodeURIComponent(query)}&ajax=1`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('memberTableBody').innerHTML = html;
+      });
+    }
+  }, 300);
+});
+</script>
+{% endblock %}

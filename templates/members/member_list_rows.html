@@ -53,6 +53,17 @@
         {% endif %}
     </td>
     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {% if member.unit %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                {{ member.unit.name }}
+            </span>
+        {% else %}
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                Unassigned
+            </span>
+        {% endif %}
+    </td>
+    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
         {{ member.date_of_birth|date:"M d, Y"|default:"-" }}
     </td>
     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
@@ -101,7 +112,7 @@
 </tr>
 {% empty %}
 <tr>
-    <td colspan="15" class="px-4 py-8 text-center text-gray-500">
+    <td colspan="16" class="px-4 py-8 text-center text-gray-500">
         <div class="flex flex-col items-center">
             <i class="fas fa-users text-4xl mb-3 text-gray-300"></i>
             <p class="text-lg font-medium">No members found</p>

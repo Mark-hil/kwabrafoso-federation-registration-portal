@@ -1,0 +1,274 @@
+{% extends 'members/base2.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% block title %}Room & Division Statistics{% endblock %} 
+{% block content %}
+
+<div class="w-full max-w-7xl mx-auto px-4 my-10">
+  <!-- Header with decorative elements -->
+  <div class="relative mb-6 md:mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+      Room & Division Statistics
+    </h1>
+    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"></div>
+    <p class="text-gray-500 mt-2 text-sm md:text-base">Overview of member distribution across rooms and divisions</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-600 text-sm font-medium">Total Members</p>
+          <p class="text-2xl font-bold text-blue-800">{{ total_members|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-users text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-green-600 text-sm font-medium">Assigned to Rooms</p>
+          <p class="text-2xl font-bold text-green-800">{{ total_assigned_to_rooms|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-home text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-purple-600 text-sm font-medium">Assigned to Divisions</p>
+          <p class="text-2xl font-bold text-purple-800">{{ total_assigned_to_divisions|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-users-cog text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-orange-600 text-sm font-medium">Unassigned to Rooms</p>
+          <p class="text-2xl font-bold text-orange-800">{{ unassigned_to_rooms|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-user-clock text-white"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Room Statistics -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Room Statistics</h2>
+        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-home text-white text-sm"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        {% for room in rooms %}
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-800">{{ room.name }}</h3>
+            <span class="px-3 py-1 text-xs font-medium rounded-full {% if room.is_full %}bg-red-100 text-red-800{% else %}bg-green-100 text-green-800{% endif %}">
+              {{ room.member_count }}/{{ room.capacity }}
+            </span>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div class="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full transition-all duration-300" 
+                 style="width: {% widthratio room.member_count room.capacity 100 %}%"></div>
+          </div>
+          
+          <!-- Gender Breakdown -->
+          <div class="flex justify-between text-sm">
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Male: <span class="font-medium">{{ room.male_count }}</span></span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Female: <span class="font-medium">{{ room.female_count }}</span></span>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-home text-4xl text-gray-300 mb-3"></i>
+          <p class="text-lg font-medium">No rooms found</p>
+          <p class="text-sm mt-1">Rooms will appear here once members are assigned.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Division Statistics -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Division Statistics</h2>
+        <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-users-cog text-white text-sm"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        {% for division in division_stats %}
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-800">Division {{ division.division }}</h3>
+            <span class="px-3 py-1 text-xs font-medium rounded-full {% if division.member_count == 0 %}bg-gray-100 text-gray-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+              {{ division.member_count }} members
+            </span>
+          </div>
+          
+          <!-- Progress Bar (relative to total members) -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div class="bg-gradient-to-r from-purple-500 to-purple-600 h-2 rounded-full transition-all duration-300" 
+                 style="width: {% if total_members > 0 %}{% widthratio division.member_count total_members 100 %}{% else %}0{% endif %}%"></div>
+          </div>
+          
+          <!-- Gender Breakdown -->
+          <div class="flex justify-between text-sm">
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Male: <span class="font-medium">{{ division.male_count }}</span></span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Female: <span class="font-medium">{{ division.female_count }}</span></span>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Unit Statistics -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Unit Statistics</h2>
+        <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-layer-group text-white text-sm"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-3 max-h-96 overflow-y-auto">
+        {% for unit in unit_stats %}
+        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-semibold text-gray-800">{{ unit.name }}</h3>
+            <span class="px-3 py-1 text-xs font-medium rounded-full {% if unit.is_full %}bg-red-100 text-red-800{% else %}bg-orange-100 text-orange-800{% endif %}">
+              {{ unit.member_count }}/10
+            </span>
+          </div>
+          
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 rounded-full h-2 mb-3">
+            <div class="bg-gradient-to-r from-orange-500 to-orange-600 h-2 rounded-full transition-all duration-300" 
+                 style="width: {% widthratio unit.member_count unit.capacity 100 %}%"></div>
+          </div>
+          
+          <!-- Gender Breakdown -->
+          <div class="flex justify-between text-sm">
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Male: <span class="font-medium">{{ unit.male_count }}</span></span>
+            </div>
+            <div class="flex items-center">
+              <div class="w-3 h-3 bg-pink-500 rounded-full mr-2"></div>
+              <span class="text-gray-600">Female: <span class="font-medium">{{ unit.female_count }}</span></span>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-layer-group text-4xl text-gray-300 mb-3"></i>
+          <p class="text-lg font-medium">No units found</p>
+          <p class="text-sm mt-1">Units will appear here once members are assigned.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Additional Statistics -->
+  <div class="mt-6 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Additional Insights</h2>
+      <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+        <i class="fas fa-chart-pie text-white text-sm"></i>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="text-center p-4 bg-blue-50 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Room Occupancy Rate</p>
+        <p class="text-2xl font-bold text-blue-800">
+          {% if total_room_capacity > 0 %}
+            {% widthratio total_assigned_to_rooms total_room_capacity 100 %}%
+          {% else %}
+            0%
+          {% endif %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">{{ total_assigned_to_rooms }} of {{ total_room_capacity }} available spots</p>
+      </div>
+      
+      <div class="text-center p-4 bg-purple-50 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Division Assignment Rate</p>
+        <p class="text-2xl font-bold text-purple-800">
+          {% if total_members > 0 %}
+            {% widthratio total_assigned_to_divisions total_members 100 %}%
+          {% else %}
+            0%
+          {% endif %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">{{ total_assigned_to_divisions }} of {{ total_members }} members assigned</p>
+      </div>
+      
+      <div class="text-center p-4 bg-orange-50 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Unit Assignment Rate</p>
+        <p class="text-2xl font-bold text-orange-800">
+          {% if total_members > 0 %}
+            {% widthratio total_assigned_to_units total_members 100 %}%
+          {% else %}
+            0%
+          {% endif %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">{{ total_assigned_to_units }} of {{ total_members }} members assigned</p>
+      </div>
+      
+      <div class="text-center p-4 bg-green-50 rounded-lg">
+        <p class="text-sm text-gray-600 mb-1">Average Members per Division</p>
+        <p class="text-2xl font-bold text-green-800">
+          {% if total_assigned_to_divisions > 0 %}
+            {% widthratio total_assigned_to_divisions 5 1 %}
+          {% else %}
+            0
+          {% endif %}
+        </p>
+        <p class="text-xs text-gray-500 mt-1">Across 5 divisions</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back to Dashboard -->
+  <div class="mt-6 text-center">
+    <a href="{% url 'admin_dashboard' %}" class="inline-flex items-center px-6 py-3 bg-gray-500 text-white font-medium rounded-lg hover:bg-gray-600 transition-colors">
+      <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
+    </a>
+  </div>
+</div>
+
+{% endblock %}

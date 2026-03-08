@@ -1,0 +1,74 @@
+{% for member in members %}
+<tr class="hover:bg-gray-50 transition-colors">
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="flex items-center">
+      <div class="flex-shrink-0 h-10 w-10">
+        {% if member.picture %}
+          <img class="h-10 w-10 rounded-full object-cover" src="{{ member.picture.url }}" alt="{{ member.first_name }}">
+        {% else %}
+          <div class="h-10 w-10 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+            <span class="text-white font-medium text-sm">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</span>
+          </div>
+        {% endif %}
+      </div>
+      <div class="ml-3">
+        <div class="text-sm font-medium text-gray-900">{{ member.first_name }} {{ member.last_name }}</div>
+        <div class="text-xs text-gray-500">{{ member.get_gender_display }}</div>
+      </div>
+    </div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap">
+    <div class="text-sm text-gray-900">{{ member.email }}</div>
+    <div class="text-xs text-gray-500">{{ member.phone_number }}</div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap hidden md:table-cell">
+    <div class="text-sm text-gray-900">{{ member.church|default:"Not specified" }}</div>
+    <div class="text-xs text-gray-500">{{ member.district|default:"Not specified" }}</div>
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+    {% if member.room %}
+      <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+        {{ member.room.name }}
+      </span>
+    {% else %}
+      <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+        Not assigned
+      </span>
+    {% endif %}
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap hidden lg:table-cell">
+    {% if member.division %}
+      <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+        Division {{ member.division }}
+      </span>
+    {% else %}
+      <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+        Not assigned
+      </span>
+    {% endif %}
+  </td>
+  <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+    <div class="flex space-x-2">
+      <a href="{% url 'view_qr_code' member.id %}" class="text-orange-600 hover:text-orange-900 transition-colors" title="View QR Code">
+        <i class="fas fa-qrcode"></i>
+      </a>
+      <a href="{% url 'edit_member' member.id %}" class="text-blue-600 hover:text-blue-900 transition-colors" title="Edit Member">
+        <i class="fas fa-edit"></i>
+      </a>
+      <a href="{% url 'delete_member' member.id %}" class="text-red-600 hover:text-red-900 transition-colors" title="Delete Member">
+        <i class="fas fa-trash"></i>
+      </a>
+    </div>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+    <div class="flex flex-col items-center">
+      <i class="fas fa-users-slash text-4xl text-gray-300 mb-3"></i>
+      <p class="text-lg font-medium">No members found</p>
+      <p class="text-sm mt-1">Start by registering your first member!</p>
+    </div>
+  </td>
+</tr>
+{% endfor %}

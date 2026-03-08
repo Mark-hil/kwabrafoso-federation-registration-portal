@@ -1,0 +1,212 @@
+{% extends 'members/base2.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% block title %}My Dashboard{% endblock %} 
+{% block content %}
+
+<div class="w-full max-w-6xl mx-auto px-4 my-10">
+  <!-- Header with decorative elements -->
+  <div class="relative mb-6 md:mb-8 text-center">
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-800">
+      My Dashboard
+    </h1>
+    <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-24 h-1.5 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full"></div>
+    <p class="text-gray-500 mt-2 text-sm md:text-base">Welcome back! Here's an overview of your registered members</p>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-xl border border-blue-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-blue-600 text-sm font-medium">Total Members</p>
+          <p class="text-2xl font-bold text-blue-800">{{ total_members|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-users text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-xl border border-green-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-green-600 text-sm font-medium">New This Month</p>
+          <p class="text-2xl font-bold text-green-800">{{ new_members|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-user-plus text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-xl border border-purple-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-purple-600 text-sm font-medium">Churches</p>
+          <p class="text-2xl font-bold text-purple-800">{{ church_count|intcomma }}</p>
+        </div>
+        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-church text-white"></i>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-4 rounded-xl border border-orange-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-orange-600 text-sm font-medium">Quick Actions</p>
+          <div class="mt-2 space-y-1">
+            <a href="{% url 'add_member' %}" class="inline-flex items-center text-xs font-medium text-orange-700 hover:text-orange-900">
+              <i class="fas fa-user-plus mr-1"></i> Add Member
+            </a>
+          </div>
+        </div>
+        <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-bolt text-white"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Recent Members -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Recent Members</h2>
+        <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-clock text-white text-sm"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-3">
+        {% for member in recent_members %}
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+          <div class="flex items-center">
+            <div class="flex-shrink-0 h-8 w-8">
+              {% if member.picture %}
+                <img class="h-8 w-8 rounded-full object-cover" src="{{ member.picture.url }}" alt="{{ member.first_name }}">
+              {% else %}
+                <div class="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+                  <span class="text-white font-medium text-xs">{{ member.first_name|first|upper }}{{ member.last_name|first|upper }}</span>
+                </div>
+              {% endif %}
+            </div>
+            <div class="ml-3">
+              <p class="text-sm font-medium text-gray-900">{{ member.first_name }} {{ member.last_name }}</p>
+              <p class="text-xs text-gray-500">{{ member.date_joined|date:"M d, Y" }}</p>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <a href="{% url 'view_qr_code' member.id %}" class="text-orange-600 hover:text-orange-900 transition-colors" title="View QR Code">
+              <i class="fas fa-qrcode text-sm"></i>
+            </a>
+            <a href="{% url 'edit_member' member.id %}" class="text-blue-600 hover:text-blue-900 transition-colors" title="Edit Member">
+              <i class="fas fa-edit text-sm"></i>
+            </a>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-users-slash text-4xl text-gray-300 mb-3"></i>
+          <p class="text-lg font-medium">No members yet</p>
+          <p class="text-sm mt-1">Start by registering your first member!</p>
+          <a href="{% url 'add_member' %}" class="mt-4 inline-flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
+            <i class="fas fa-user-plus mr-2"></i> Register Member
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+      
+      {% if recent_members %}
+      <div class="mt-4 text-center">
+        <a href="{% url 'my_members' %}" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+          <i class="fas fa-list mr-2"></i> View All Members
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Gender Distribution -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-gray-800">Gender Distribution</h2>
+        <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+          <i class="fas fa-chart-pie text-white text-sm"></i>
+        </div>
+      </div>
+      
+      <div class="space-y-4">
+        {% for gender_stat in gender_distribution %}
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+          <div class="flex items-center">
+            <div class="w-4 h-4 {% if gender_stat.gender == 'male' %}bg-blue-500{% else %}bg-pink-500{% endif %} rounded-full mr-3"></div>
+            <span class="font-medium text-gray-700 capitalize">{{ gender_stat.gender|default:"Unknown" }}</span>
+          </div>
+          <div class="text-right">
+            <p class="text-2xl font-bold text-gray-800">{{ gender_stat.count }}</p>
+            <p class="text-xs text-gray-500">
+              {% if total_members > 0 %}
+                {% widthratio gender_stat.count total_members 100 %}%
+              {% else %}
+                0%
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-chart-pie text-4xl text-gray-300 mb-3"></i>
+          <p class="text-lg font-medium">No gender data</p>
+          <p class="text-sm mt-1">Gender statistics will appear once members are registered.</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="mt-6 bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-xl font-bold text-gray-800">Quick Actions</h2>
+      <div class="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+        <i class="fas fa-rocket text-white text-sm"></i>
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a href="{% url 'add_member' %}" class="flex items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group">
+        <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+          <i class="fas fa-user-plus text-white"></i>
+        </div>
+        <div class="ml-4">
+          <p class="font-medium text-gray-900">Register New Member</p>
+          <p class="text-sm text-gray-500">Add a new member to your list</p>
+        </div>
+      </a>
+      
+      <a href="{% url 'my_members' %}" class="flex items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group">
+        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center group-hover:bg-green-600 transition-colors">
+          <i class="fas fa-users text-white"></i>
+        </div>
+        <div class="ml-4">
+          <p class="font-medium text-gray-900">View All Members</p>
+          <p class="text-sm text-gray-500">See all your registered members</p>
+        </div>
+      </a>
+      
+      <a href="{% url 'scanner' %}" class="flex items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors group">
+        <div class="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center group-hover:bg-purple-600 transition-colors">
+          <i class="fas fa-qrcode text-white"></i>
+        </div>
+        <div class="ml-4">
+          <p class="font-medium text-gray-900">Scan Attendance</p>
+          <p class="text-sm text-gray-500">Mark attendance for events</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

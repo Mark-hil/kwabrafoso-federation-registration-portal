@@ -7,7 +7,7 @@ from django.http import HttpResponseForbidden
 from .decorators import admin_required
 from django.contrib import messages
 from .forms import AdminSignupForm
-from .models import AttendanceSetting, Member, generate_qr_code_for_attendance
+from .models import AttendanceSetting, Member, Room, Unit, generate_qr_code_for_attendance
 # from django.shortcuts import render
 from .forms import FollowUpForm, MemberForm, MemberEditForm
 
@@ -46,6 +46,168 @@ def scanner(request):
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='my_members')
+def room_and_division_stats(request):
+    """View showing member counts per room and division"""
+    from django.db.models import Count, Q
+    
+    # Get room statistics
+    rooms = Room.objects.annotate(
+        member_count=Count('members'),
+        male_count=Count('members', filter=Q(members__gender='male')),
+        female_count=Count('members', filter=Q(members__gender='female'))
+    ).order_by('name')
+    
+    # Get division statistics
+    division_stats = Member.objects.filter(
+        division__isnull=False
+    ).values('division').annotate(
+        member_count=Count('id'),
+        male_count=Count('id', filter=Q(gender='male')),
+        female_count=Count('id', filter=Q(gender='female'))
+    ).order_by('division')
+    
+    # Create a complete division list (1-5) with zeros for empty divisions
+    all_divisions = []
+    for i in range(1, 6):  # Changed from 4 to 5
+        found = False
+        for stat in division_stats:
+            if stat['division'] == i:
+                all_divisions.append(stat)
+                found = True
+                break
+        if not found:
+            all_divisions.append({
+                'division': i,
+                'member_count': 0,
+                'male_count': 0,
+                'female_count': 0
+            })
+    
+    # Get unit statistics
+    unit_stats = Unit.objects.annotate(
+        member_count=Count('members'),
+        male_count=Count('members', filter=Q(members__gender='male')),
+        female_count=Count('members', filter=Q(members__gender='female'))
+    ).order_by('division', 'name')
+    
+    # Calculate summary statistics
+    total_members = Member.objects.count()
+    total_assigned_to_rooms = Member.objects.filter(room__isnull=False).count()
+    total_assigned_to_divisions = Member.objects.filter(division__isnull=False).count()
+    total_assigned_to_units = Member.objects.filter(unit__isnull=False).count()
+    
+    context = {
+        'rooms': rooms,
+        'division_stats': all_divisions,
+        'unit_stats': unit_stats,
+        'total_members': total_members,
+        'total_assigned_to_rooms': total_assigned_to_rooms,
+        'total_assigned_to_divisions': total_assigned_to_divisions,
+        'total_assigned_to_units': total_assigned_to_units,
+        'unassigned_to_rooms': total_members - total_assigned_to_rooms,
+        'unassigned_to_divisions': total_members - total_assigned_to_divisions,
+        'unassigned_to_units': total_members - total_assigned_to_units,
+    }
+    
+    return render(request, 'members/room_division_stats.html', context)
+
+
+@login_required
+def my_members(request):
+    """View for users to see only members they have registered"""
+    from django.utils import timezone
+    from datetime import timedelta
+    from django.template.defaultfilters import register
+    
+    query = request.GET.get('q')
+    page = request.GET.get('page', 1)
+    per_page = int(request.GET.get('per_page', 10))
+    
+    # Base queryset - only members registered by current user
+    members_queryset = Member.objects.filter(registered_by=request.user)
+    
+    # Apply search filter if query exists
+    if query:
+        members_queryset = members_queryset.filter(
+            first_name__icontains=query
+        ) | members_queryset.filter(
+            last_name__icontains=query
+        ) | members_queryset.filter(
+            email__icontains=query
+        ) | members_queryset.filter(
+            phone_number__icontains=query
+        ) | members_queryset.filter(
+            address__icontains=query
+        )
+    
+    # Order by last name, then first name
+    members_queryset = members_queryset.order_by('last_name', 'first_name')
+    
+    # Pagination
+    paginator = Paginator(members_queryset, per_page)
+    paginator.per_page = per_page
+    
+    try:
+        members_page = paginator.page(page)
+    except PageNotAnInteger:
+        members_page = paginator.page(1)
+    except EmptyPage:
+        members_page = paginator.page(paginator.num_pages)
+    
+    # Handle AJAX requests for pagination
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        # Preprocess members for AJAX response
+        for member in members_page:
+            if member.allergies:
+                member.allergies_list = [a.strip() for a in str(member.allergies).split(',') if a.strip()]
+            else:
+                member.allergies_list = []
+                
+        html = render_to_string('members/my_members_rows.html', {
+            'members': members_page,
+            'page_obj': members_page,
+            'is_paginated': paginator.num_pages > 1,
+            'paginator': paginator
+        }, request=request)
+        return HttpResponse(html)
+    
+    # Calculate statistics (only for current user's members)
+    total_members = members_queryset.count()
+    
+    # Get the first day of the current month
+    first_day_of_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    new_this_month = members_queryset.filter(date_joined__gte=first_day_of_month).count()
+    
+    # Get gender distribution for statistics
+    gender_distribution = members_queryset.values('gender').annotate(count=Count('gender'))
+    
+    # Get unique church count
+    church_count = members_queryset.exclude(church__isnull=True).exclude(church__exact='').values('church').distinct().count()
+    
+    # Preprocess members to add allergies_list to each member
+    for member in members_page:
+        if member.allergies:
+            member.allergies_list = [a.strip() for a in str(member.allergies).split(',') if a.strip()]
+        else:
+            member.allergies_list = []
+    
+    context = {
+        'members': members_page,
+        'page_obj': members_page,
+        'is_paginated': paginator.num_pages > 1,
+        'paginator': paginator,
+        'member_count': total_members,
+        'new_members': new_this_month,
+        'gender_distribution': gender_distribution,
+        'church_count': church_count,
+    }
+    
+    return render(request, 'members/my_members.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff, login_url='my_members')
 def member_list(request):
     from django.utils import timezone
     from datetime import timedelta
@@ -180,6 +342,7 @@ def add_member(request):
                 
                 # Create the member but don't save to DB yet
                 member = form.save(commit=False)
+                member.registered_by = request.user  # Set the user who registered this member
                 logger.info(f"Member instance created: {member}")
                 
                 # Save to get an ID
@@ -223,15 +386,16 @@ def add_member(request):
                 try:
                     # Format the welcome message with emojis and clear sections
                     message = (
-                        f"Welcome to Kwabrafoso Distict Youth Ministry!\n\n"
+                        f"Welcome to Kwabrafoso District Youth Ministry!\n\n"
                         f"Dear {member.first_name} {member.last_name},\n\n"
                         f"Thank you for registering for the 2026 Annual Survival Camp! "
-                        f"Here are your assigned room and division details:\n\n"
+                        f"Here are your assigned details:\n\n"
                         f"Room: {member.room.name if member.room else 'To be assigned'}\n"
-                        f"Division: {member.division if member.division else 'To be assigned'}\n\n"
+                        f"Division: {member.division if member.division else 'To be assigned'}\n"
+                        f"Unit: {member.unit.name if member.unit else 'To be assigned'}\n\n"
                         f"We look forward to seeing you at the camp!\n\n"
                         f"Best regards,\n"
-                        f"Kwabrafoso District Youth Ministry Team"
+                        f"Phoenix Peacock Adventist Youth Ministry Team"
                     )
                     
                     if member.phone_number:
@@ -868,6 +1032,7 @@ from .models import Visitor
 from .forms import VisitorForm
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='my_members')
 def add_visitor(request):
     if request.method == 'POST':
         form = VisitorForm(request.POST)
@@ -879,6 +1044,7 @@ def add_visitor(request):
     return render(request, 'visitors/add_visitor.html', {'form': form})
 
 @login_required
+@user_passes_test(lambda u: u.is_staff, login_url='my_members')
 def visitor_list(request):
     visitors = Visitor.objects.all()
     return render(request, 'visitors/visitor_list.html', {'visitors': visitors})
@@ -926,6 +1092,53 @@ def admin_signup(request):
     return render(request, 'registration/admin_signup.html', {'form': form})
 
 @login_required
+def smart_dashboard(request):
+    """Redirect to appropriate dashboard based on user role"""
+    if request.user.is_staff:
+        return redirect('admin_dashboard')
+    else:
+        return redirect('user_dashboard')
+
+
+@login_required
+def user_dashboard(request):
+    """Simple dashboard for regular users showing their registered members summary"""
+    from django.db.models import Count
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Get user's registered members
+    user_members = Member.objects.filter(registered_by=request.user)
+    
+    # Calculate statistics
+    total_members = user_members.count()
+    
+    # Get the first day of the current month
+    first_day_of_month = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    new_this_month = user_members.filter(date_joined__gte=first_day_of_month).count()
+    
+    # Get gender distribution
+    gender_distribution = user_members.values('gender').annotate(count=Count('gender'))
+    
+    # Get unique church count
+    church_count = user_members.exclude(church__isnull=True).exclude(church__exact='').values('church').distinct().count()
+    
+    # Get recent members (last 5)
+    recent_members = user_members.order_by('-date_joined')[:5]
+    
+    context = {
+        'total_members': total_members,
+        'new_members': new_this_month,
+        'gender_distribution': gender_distribution,
+        'church_count': church_count,
+        'recent_members': recent_members,
+    }
+    
+    return render(request, 'members/user_dashboard.html', context)
+
+
+@login_required
+@user_passes_test(lambda u: u.is_staff, login_url='my_members')
 def dashboard(request):
     from datetime import date, timedelta
     import json
@@ -971,7 +1184,7 @@ def dashboard(request):
     # Calculate unknown church count
     unknown_church_count = Member.objects.filter(church__isnull=True) | Member.objects.filter(church__exact='')
     if unknown_church_count.exists():
-        registrations_by_church.append({'church': None, 'count': unknown_church_count.count()})
+        registrations_by_church.append({'church': 'Unknown', 'count': unknown_church_count.count()})
 
     # Registrations by district - filter out empty/None values and add total
     registrations_by_district = list(Member.objects.exclude(district__isnull=True)
@@ -983,7 +1196,7 @@ def dashboard(request):
     # Calculate unknown district count
     unknown_district_count = Member.objects.filter(district__isnull=True) | Member.objects.filter(district__exact='')
     if unknown_district_count.exists():
-        registrations_by_district.append({'district': None, 'count': unknown_district_count.count()})
+        registrations_by_district.append({'district': 'Unknown', 'count': unknown_district_count.count()})
 
     # Gender totals - ensure we count all members and handle case sensitivity
     gender_counts = {

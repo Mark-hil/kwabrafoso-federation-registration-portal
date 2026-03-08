@@ -25,15 +25,16 @@ def test_welcome_message():
     
     # The exact welcome message from views.py
     message = (
-        f"Welcome to Ahinsan Youth Federation!\n\n"
+        f"Welcome to Phoenix Peacock Adventist Youth Ministry!\n\n"
         f"Dear Test User,\n\n"
-        f"Thank you for registering for the 2025 Annual Youth Camp! "
-        f"Here are your assigned room and division details:\n\n"
+        f"Thank you for registering for the 2026 Annual Survival Camp! "
+        f"Here are your assigned details:\n\n"
         f"Room: Test Room\n"
-        f"Division: Test Division\n\n"
+        f"Division: Test Division\n"
+        f"Unit: Test Unit\n\n"
         f"We look forward to seeing you at the camp!\n\n"
         f"Best regards,\n"
-        f"Ahinsan Youth Federation Team"
+        f"Phoenix Peacock Adventist Youth Ministry Team"
     )
     
     print(f"Testing with message length: {len(message)} characters")

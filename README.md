@@ -1,6 +1,6 @@
 # Kwabrafoso District Youth Ministry Management System
 
-A comprehensive church management system designed for the Kwabrafoso District Youth Ministry to manage member registration, attendance tracking, visitor management, and communication for the 2026 Annual Survival Camp.
+A comprehensive Phoenix Peacock system designed for the Kwabrafoso District Youth Ministry to manage member registration, attendance tracking, visitor management, and communication for the 2026 Annual Survival Camp.
 
 ## 🚀 Quick Start
 
@@ -239,3 +239,6 @@ This project is proprietary software for the Kwabrafoso District Youth Ministry.
 ---
 
 **Built with ❤️ for the Kwabrafoso District Youth Ministry**
+
+
+pejec69755@hutudns.com

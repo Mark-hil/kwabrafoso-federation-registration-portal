@@ -3,10 +3,13 @@ from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from .views import member_list, add_member, login_view, signup_view, logout_view, admin_signup
-from . import views
+from . import views, admin_views
 
 # URL patterns that require login
 urlpatterns = [
+    path('my_members/', login_required(views.my_members), name='my_members'),
+    path('room_division_stats/', login_required(views.room_and_division_stats), name='room_division_stats'),
+    path('user_dashboard/', login_required(views.user_dashboard), name='user_dashboard'),
     path('member_list/', login_required(member_list), name='member_list'),  
     path('add/', login_required(add_member), name='add_member'),
     path('edit/<int:pk>/', login_required(views.edit_member), name='edit_member'),
@@ -23,7 +26,19 @@ urlpatterns = [
     path('add-visitor/', login_required(views.add_visitor), name='add_visitor'),
     path('visitors/', login_required(views.visitor_list), name='visitor_list'),
     path('follow-up/<int:pk>/', login_required(views.follow_up_visitor), name='follow_up_visitor'),
-    path('', login_required(views.dashboard), name='dashboard'), # The root URL of this app shows the dashboard
+    path('admin_dashboard/', login_required(views.dashboard), name='admin_dashboard'),
+    path('', login_required(views.smart_dashboard), name='smart_dashboard'), # Smart redirect based on user role
+    
+    # Admin Configuration URLs
+    path('config/system/', login_required(admin_views.system_configuration), name='system_configuration'),
+    path('config/room-overrides/', login_required(admin_views.room_overrides), name='room_overrides'),
+    path('config/room-overrides/<int:pk>/delete/', login_required(admin_views.delete_room_override), name='delete_room_override'),
+    path('config/division-overrides/', login_required(admin_views.division_overrides), name='division_overrides'),
+    path('config/division-overrides/<int:pk>/delete/', login_required(admin_views.delete_division_override), name='delete_division_override'),
+    path('config/unit-overrides/', login_required(admin_views.unit_overrides), name='unit_overrides'),
+    path('config/unit-overrides/<int:pk>/delete/', login_required(admin_views.delete_unit_override), name='delete_unit_override'),
+    path('config/manual-assignment/', login_required(admin_views.manual_assignment), name='manual_assignment'),
+    path('config/bulk-reassignment/', login_required(admin_views.bulk_reassignment), name='bulk_reassignment'),
     
     # Authentication URLs
     path('login/', login_view, name='login'),
