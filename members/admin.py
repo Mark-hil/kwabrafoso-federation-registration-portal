@@ -90,5 +90,10 @@ from .models import Member, WorshipServiceAttendance, EventAttendance, SmallGrou
 admin.site.register(WorshipServiceAttendance)
 admin.site.register(EventAttendance)
 admin.site.register(SmallGroupAttendance)
-admin.site.register(Visitor)
+@admin.register(Visitor)
+class VisitorAdmin(admin.ModelAdmin):
+    list_display = ('first_name', 'last_name', 'email', 'phone_number', 'visit_date', 'follow_up_status')
+    list_filter = ('follow_up_status', 'visit_date')
+    search_fields = ('first_name', 'last_name', 'email', 'phone_number')
+    readonly_fields = ('visit_date',)
 # admin.site.register(AttendanceSetting)

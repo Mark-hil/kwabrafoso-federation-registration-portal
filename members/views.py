@@ -1376,7 +1376,7 @@ def signup_view(request):
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('smart_dashboard')
         
     if request.method == 'POST':
         form = EmailOrUsernameAuthenticationForm(request, data=request.POST)
@@ -1384,7 +1384,7 @@ def login_view(request):
             user = form.get_user()
             login(request, user)
             # messages.success(request, f'Welcome back, {user.username}!')
-            next_url = request.POST.get('next') or 'dashboard'
+            next_url = request.POST.get('next') or 'smart_dashboard'
             return redirect(next_url)
         else:
             # Show form errors instead of generic message
